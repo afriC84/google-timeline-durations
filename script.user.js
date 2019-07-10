@@ -13,7 +13,7 @@
 (function($) {
     'use strict';
 
-    const TIMEFORMAT = 'HH:mm';    
+    const TIMEFORMAT = 'HH:mm';
 
     const calculateDurations = () => {
         console.log('Google Timeline Durations: Calculating durations');
