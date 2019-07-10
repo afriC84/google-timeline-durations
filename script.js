@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Google Timeline Durations
-// @version      1.0
+// @version      1.1
 // @description  Calculates and displays the durations per point in history
 // @author       Colja Carls
 // @match        https://www.google.com/maps/timeline*
@@ -13,34 +13,44 @@
 (function($) {
     'use strict';
 
-    const TIMEFORMAT = 'HH:mm';
+    const TIMEFORMAT = 'HH:mm';    
 
-    const $timelineItems = $('.place-history-moment-outer');
-    const $durationTexts = $timelineItems.find('.duration-text');
-    const $durationsFiltered = $durationTexts.filter(function(index) {
-        return $($durationTexts[index]).find('.segment-duration-part').length === 2;
-    });
+    const calculateDurations = () => {
+        console.log('Google Timeline Durations: Calculating durations');
+        const $timelineItems = $('.place-history-moment-outer');
+        const $durationTexts = $timelineItems.find('.duration-text');
+        const $durationsFiltered = $durationTexts.filter(function(index) {
+            return $($durationTexts[index]).find('.segment-duration-part').length === 2;
+        });
+        $('.gtd-durations').remove();
+        $durationsFiltered.each(function() {
+            const $span = $(this);
+            const segments = $span.find('.segment-duration-part')
+            .map(function() {
+                return $(this).text();
+            })
+            .get();
+            const start = moment(segments[0], TIMEFORMAT);
+            const end = moment(segments[1], TIMEFORMAT);
+            const minutes = +end.diff(start, 'minutes');
 
-    $durationsFiltered.each(function() {
-        const $span = $(this);
-        const segments = $span.find('.segment-duration-part')
-        .map(function() {
-            return $(this).text();
-        })
-        .get();
-        const start = moment(segments[0], TIMEFORMAT);
-        const end = moment(segments[1], TIMEFORMAT);
-        const minutes = +end.diff(start, 'minutes');
+            let span;
+            if (minutes >= 0) {
+                const spanHours = Math.floor(minutes / 60);
+                const spanMinutes = minutes % 60 < 10 ? `0${minutes % 60}` : minutes % 60;
+                span = `${spanHours}:${spanMinutes}`;
+            } else {
+                span = '---';
+            }
 
-        let span;
-        if (minutes >= 0) {
-            const spanHours = Math.floor(minutes / 60);
-            const spanMinutes = minutes % 60 < 10 ? `0${minutes % 60}` : minutes % 60;
-            span = `${spanHours}:${spanMinutes}`;
-        } else {
-            span = '---';
-        }
+            $span.append(`<span class="gtd-durations"><br><span>(${span})</span></span>`);
+        });
+    };
 
-        $span.append(`<br><span>(${span})</span>`);
+    calculateDurations();
+
+    const $histogram = $('.histogram').eq(0);
+    $histogram.on('click', () => {
+        setTimeout(() => calculateDurations(), 800)
     });
 })(jQuery);
